@@ -35,8 +35,8 @@ is not locked and no keyguard is shown by the app.
 
 ## Install
 
-1. Open the **Actions** tab and pick the latest successful **Android CI** run.
-2. Download the `proximit-debug-apk` artifact and install the APK on your phone
+1. Open the **Actions** tab and pick the latest successful **Build** run.
+2. Download the `proximit-apk` artifact and install the APK on your phone
    (allow "Install unknown apps" for the app you use to open it).
 3. Pull down Quick Settings, tap the edit/pencil button, find **Proximit**, and
    drag it into the active tiles.
@@ -78,22 +78,53 @@ remove first.
 
 ## Build (GitHub Actions only)
 
-The workflow in `.github/workflows/android.yml`:
+The workflow in `.github/workflows/build.yml`:
 
 1. Installs JDK 17 and uses the Android SDK platform 35 and build-tools 35.0.0
    that are preinstalled on the GitHub Actions runner.
 2. Generates the Gradle wrapper (`gradlew` + wrapper JAR) with Gradle 8.9.
-3. Builds `app-debug.apk` with AGP 8.7.3.
-4. Uploads the APK as an artifact.
+3. Builds an unsigned release APK with AGP 8.7.3 and signs it with the keystore
+   from repository secrets using `apksigner`. If the signing secrets are not
+   configured, it builds a debug-signed APK instead.
+4. Uploads the APK as the `proximit-apk` artifact.
 
-Push to `main`, open a pull request, or run the workflow manually from the
-Actions tab. Pushing a tag such as `v1.1.1` also publishes the APK on a GitHub
-Release:
+Push to `main`, open a pull request, or run the **Build** workflow manually from
+the Actions tab. Pushing a tag such as `v1.1.1` also publishes the APK on a
+GitHub Release:
 
 ```bash
 git tag v1.1.1
 git push origin v1.1.1
 ```
+
+### Signing secrets
+
+Add these repository secrets under **Settings → Secrets and variables →
+Actions**:
+
+| Secret | Value |
+| --- | --- |
+| `ANDROID_KEYSTORE_BASE64` | Base64-encoded release keystore (JKS or PKCS12) |
+| `ANDROID_KEYSTORE_PASSWORD` | Keystore password |
+| `ANDROID_KEY_ALIAS` | Key alias inside the keystore |
+| `ANDROID_KEY_PASSWORD` | Key password |
+
+Generate a keystore and upload the secrets with `gh`:
+
+```bash
+keytool -genkeypair -v -keystore proximit-release.jks -alias proximit \
+  -keyalg RSA -keysize 2048 -validity 10000
+base64 -w0 proximit-release.jks > proximit-release.jks.b64
+gh secret set ANDROID_KEYSTORE_BASE64 < proximit-release.jks.b64
+gh secret set ANDROID_KEYSTORE_PASSWORD
+gh secret set ANDROID_KEY_ALIAS
+gh secret set ANDROID_KEY_PASSWORD
+```
+
+On macOS, encode with `base64 -i proximit-release.jks | tr -d '\n'` instead.
+Keep the keystore and passwords safe: future APKs must be signed with the same
+key to update an installed app. When the secrets are absent, CI builds a
+debug-signed APK and prints a warning, so pull requests from forks still build.
 
 The Gradle wrapper JAR is intentionally not committed — it is a binary, and CI
 generates it each run. If you later build locally, install Gradle 8.9 once and

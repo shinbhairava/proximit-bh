@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Proximit</string>
+    <string name="tile_label">Proximit</string>
+
+    <string name="channel_name">Proximity gesture</string>
+    <string name="channel_description">Keeps the proximity screen-lock gesture running</string>
+    <string name="notification_title">Proximity gesture active</string>
+    <string name="notification_text">Cover the proximity sensor to lock the screen</string>
+    <string name="action_stop">Stop</string>
+
+    <string name="setup_title">Proximit</string>
+    <string name="setup_intro">Lock the screen by covering the proximity sensor. This app has no launcher icon; control it with the Proximit Quick Settings tile.</string>
+    <string name="sensor_found">Proximity sensor: detected</string>
+    <string name="sensor_missing">Proximity sensor: not available on this device</string>
+    <string name="status_template">Device admin: %1$s\nNotifications: %2$s\nGesture service: %3$s</string>
+    <string name="enabled">enabled</string>
+    <string name="disabled">disabled</string>
+    <string name="allowed">allowed</string>
+    <string name="not_allowed">not allowed</string>
+    <string name="not_required">not required</string>
+    <string name="running">running</string>
+    <string name="stopped">stopped</string>
+
+    <string name="enable_admin">Enable device admin</string>
+    <string name="disable_admin">Disable device admin</string>
+    <string name="allow_notifications">Allow notifications</string>
+    <string name="start_gesture">Start gesture</string>
+    <string name="stop_gesture">Stop gesture</string>
+    <string name="close">Close</string>
+
+    <string name="admin_explanation">Proximit uses device admin only to lock the screen when the proximity sensor is covered. It cannot erase or otherwise change your device.</string>
+    <string name="admin_disable_title">Disable device admin?</string>
+    <string name="admin_disable_message">The proximity gesture will stop working until device admin is enabled again.</string>
+    <string name="admin_disable_warning">Without device admin, Proximit cannot lock the screen.</string>
+    <string name="disable">Disable</string>
+    <string name="admin_required_title">Device admin required</string>
+    <string name="admin_required_message">Enable device admin first so Proximit can lock the screen.</string>
+    <string name="sensor_unavailable">No proximity sensor was found on this device.</string>
+    <string name="start_failed">Could not start the gesture service.</string>
+    <string name="no_sensor_tile">Proximit: no proximity sensor on this device</string>
+    <string name="start_failed_tile">Proximit: unable to start, open the tile again</string>
+</resources>

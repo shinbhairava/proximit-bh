@@ -10,8 +10,7 @@
 </p>
 
 Proximit has **no launcher shortcut**; the only entry point is a **Quick
-Settings tile**. The app is built entirely in GitHub Actions, so no Android SDK
-is needed on your computer.
+Settings tile**.
 
 ## Screen off, not locked
 

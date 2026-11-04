@@ -39,3 +39,20 @@ remove first.
   gesture stops working, allow Proximit to run in the background / disable
   battery optimization for it.
 - No internet permission is requested.
+
+## License
+
+Copyright (C) 2026 shinbhairava
+
+Proximit is free software: you can redistribute it and/or modify it under the
+terms of the GNU General Public License as published by the Free Software
+Foundation, either version 3 of the License, or (at your option) any later
+version.
+
+Proximit is distributed in the hope that it will be useful, but **without any
+warranty**; without even the implied warranty of **merchantability** or
+**fitness for a particular purpose**. See the [GNU General Public
+License](LICENSE) for more details.
+
+You should have received a copy of the GNU General Public License along with
+Proximit. If not, see <https://www.gnu.org/licenses/>.

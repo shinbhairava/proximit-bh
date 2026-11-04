@@ -1,9 +1,17 @@
-# Proximit
+<p align="center">
+  <img src="docs/icon.png" width="144" height="144" alt="Proximit app icon">
+</p>
 
-A tiny, hidden Android app that turns the screen off when you cover the
-proximity sensor — **without locking the device**. There is **no launcher icon**;
-the only entry point is a **Quick Settings tile**. The app is built entirely in
-GitHub Actions, so no Android SDK is needed on your computer.
+<h1 align="center">Proximit</h1>
+
+<p align="center">
+  A tiny, hidden Android app that turns the screen off when you cover the
+  proximity sensor — <strong>without locking the device</strong>.
+</p>
+
+Proximit has **no launcher shortcut**; the only entry point is a **Quick
+Settings tile**. The app is built entirely in GitHub Actions, so no Android SDK
+is needed on your computer.
 
 ## How it works
 

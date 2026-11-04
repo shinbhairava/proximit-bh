@@ -1,44 +1,167 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
+    <!-- Keeps the 512x512 artwork centered inside the adaptive-icon safe zone. -->
     <group
-        android:scaleX="2.5"
-        android:scaleY="2.5"
-        android:translateX="24"
-        android:translateY="24">
+        android:scaleX="0.155"
+        android:scaleY="0.155"
+        android:translateX="14.32"
+        android:translateY="14.32">
+
+        <!-- Proximity sensing waves with soft glow layers. -->
+        <path
+            android:pathData="M 176 100 A 110 110 0 0 1 336 100"
+            android:fillColor="#00000000"
+            android:strokeColor="#1A00F2FE"
+            android:strokeWidth="18"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M 176 100 A 110 110 0 0 1 336 100"
+            android:fillColor="#00000000"
+            android:strokeColor="#3300F2FE"
+            android:strokeWidth="4"
+            android:strokeLineCap="round" />
 
         <path
-            android:fillColor="#FFFFFFFF"
-            android:pathData="M12,10a2,2 0,1 0,0 4a2,2 0,1 0,0 -4z" />
+            android:pathData="M 201 115 A 80 80 0 0 1 311 115"
+            android:fillColor="#00000000"
+            android:strokeColor="#2600F2FE"
+            android:strokeWidth="18"
+            android:strokeLineCap="round" />
+        <path
+            android:pathData="M 201 115 A 80 80 0 0 1 311 115"
+            android:fillColor="#00000000"
+            android:strokeColor="#8000F2FE"
+            android:strokeWidth="5"
+            android:strokeLineCap="round" />
 
         <path
-            android:fillColor="@android:color/transparent"
-            android:pathData="M8.1,8.1a5.5,5.5 0,0 0,0 7.8"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeLineCap="round"
-            android:strokeWidth="1.8" />
+            android:pathData="M 226 130 A 45 45 0 0 1 286 130"
+            android:fillColor="#00000000"
+            android:strokeColor="#3338BDF8"
+            android:strokeWidth="20"
+            android:strokeLineCap="round" />
         <path
-            android:fillColor="@android:color/transparent"
-            android:pathData="M15.9,8.1a5.5,5.5 0,0 1,0 7.8"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeLineCap="round"
-            android:strokeWidth="1.8" />
+            android:pathData="M 226 130 A 45 45 0 0 1 286 130"
+            android:fillColor="#00000000"
+            android:strokeColor="#E638BDF8"
+            android:strokeWidth="6"
+            android:strokeLineCap="round" />
 
+        <!-- Approaching hand / interception streak. -->
         <path
-            android:fillColor="@android:color/transparent"
-            android:pathData="M5.2,5.2a9.6,9.6 0,0 0,0 13.6"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeLineCap="round"
-            android:strokeWidth="1.8" />
+            android:pathData="M 420 60 C 370 70, 310 100, 275 125"
+            android:fillColor="#00000000"
+            android:strokeColor="#26FFFFFF"
+            android:strokeWidth="20"
+            android:strokeLineCap="round" />
         <path
-            android:fillColor="@android:color/transparent"
-            android:pathData="M18.8,5.2a9.6,9.6 0,0 1,0 13.6"
-            android:strokeColor="#FFFFFFFF"
-            android:strokeLineCap="round"
-            android:strokeWidth="1.8" />
+            android:pathData="M 420 60 C 370 70, 310 100, 275 125"
+            android:fillColor="#00000000"
+            android:strokeColor="#E6FFFFFF"
+            android:strokeWidth="8"
+            android:strokeLineCap="round" />
+
+        <group android:translateY="25">
+
+            <!-- Phone chassis. -->
+            <path
+                android:pathData="M188,130 H324 A32,32 0 0 1 356,162 V408 A32,32 0 0 1 324,440 H188 A32,32 0 0 1 156,408 V162 A32,32 0 0 1 188,130 Z"
+                android:fillColor="#FF111420"
+                android:strokeColor="#FF334155"
+                android:strokeWidth="6" />
+
+            <!-- Screen glass. -->
+            <path android:pathData="M190,142 H322 A22,22 0 0 1 344,164 V406 A22,22 0 0 1 322,428 H190 A22,22 0 0 1 168,406 V164 A22,22 0 0 1 190,142 Z">
+                <aapt:attr name="android:fillColor">
+                    <gradient
+                        android:type="linear"
+                        android:startX="168"
+                        android:startY="142"
+                        android:endX="344"
+                        android:endY="428">
+                        <item android:offset="0" android:color="#FF1E293B" />
+                        <item android:offset="0.4" android:color="#FF0F172A" />
+                        <item android:offset="1" android:color="#FF02040A" />
+                    </gradient>
+                </aapt:attr>
+            </path>
+
+            <!-- Proximity sensor dot with glow. -->
+            <path
+                android:pathData="M240,160 a16,16 0 1 0 32,0 a16,16 0 1 0 -32,0 z"
+                android:fillColor="#2600F2FE" />
+            <path
+                android:pathData="M249,160 a7,7 0 1 0 14,0 a7,7 0 1 0 -14,0 z"
+                android:fillColor="#FF00F2FE" />
+            <path
+                android:pathData="M253,160 a3,3 0 1 0 6,0 a3,3 0 1 0 -6,0 z"
+                android:fillColor="#FFFFFFFF" />
+
+            <!-- Receiver speaker slot. -->
+            <path
+                android:pathData="M233,147 H279 A2,2 0 0 1 281,149 A2,2 0 0 1 279,151 H233 A2,2 0 0 1 231,149 A2,2 0 0 1 233,147 Z"
+                android:fillColor="#FF334155" />
+
+            <!-- Screen shut-down shadow. -->
+            <path
+                android:pathData="M 168 250 L 344 370 L 344 428 L 168 428 Z"
+                android:fillColor="#A6000000" />
+
+            <group
+                android:translateX="256"
+                android:translateY="290">
+
+                <!-- Power ring with glow. -->
+                <path
+                    android:pathData="M -25 -15 A 30 30 0 1 0 25 -15"
+                    android:fillColor="#00000000"
+                    android:strokeColor="#3338BDF8"
+                    android:strokeWidth="16"
+                    android:strokeLineCap="round" />
+                <path
+                    android:pathData="M -25 -15 A 30 30 0 1 0 25 -15"
+                    android:fillColor="#00000000"
+                    android:strokeColor="#E638BDF8"
+                    android:strokeWidth="6"
+                    android:strokeLineCap="round" />
+                <path
+                    android:pathData="M 25 -15 A 30 30 0 0 0 -25 -15"
+                    android:fillColor="#00000000"
+                    android:strokeColor="#801E293B"
+                    android:strokeWidth="6"
+                    android:strokeLineCap="round" />
+
+                <!-- Power line, glowing at the top. -->
+                <path
+                    android:pathData="M 0 -32 L 0 -5"
+                    android:fillColor="#00000000"
+                    android:strokeColor="#3DFFFFFF"
+                    android:strokeWidth="14"
+                    android:strokeLineCap="round" />
+                <path
+                    android:pathData="M 0 -32 L 0 -5"
+                    android:fillColor="#00000000"
+                    android:strokeColor="#FFFFFFFF"
+                    android:strokeWidth="6"
+                    android:strokeLineCap="round" />
+                <path
+                    android:pathData="M 0 -5 L 0 5"
+                    android:fillColor="#00000000"
+                    android:strokeColor="#FF1E293B"
+                    android:strokeWidth="6"
+                    android:strokeLineCap="round" />
+            </group>
+
+            <!-- Screen glare. -->
+            <path
+                android:pathData="M 168 142 L 280 142 L 168 254 Z"
+                android:fillColor="#0AFFFFFF" />
+        </group>
     </group>
 </vector>

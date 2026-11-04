@@ -79,12 +79,12 @@ The workflow in `.github/workflows/android.yml`:
 4. Uploads the APK as an artifact.
 
 Push to `main`, open a pull request, or run the workflow manually from the
-Actions tab. Pushing a tag such as `v1.1.0` also publishes the APK on a GitHub
+Actions tab. Pushing a tag such as `v1.1.1` also publishes the APK on a GitHub
 Release:
 
 ```bash
-git tag v1.1.0
-git push origin v1.1.0
+git tag v1.1.1
+git push origin v1.1.1
 ```
 
 The Gradle wrapper JAR is intentionally not committed — it is a binary, and CI

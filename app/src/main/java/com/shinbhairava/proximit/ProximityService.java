@@ -5,8 +5,6 @@ import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ServiceInfo;
@@ -15,11 +13,8 @@ import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.os.Build;
-import android.os.Handler;
 import android.os.IBinder;
-import android.os.Looper;
 import android.os.PowerManager;
-import android.os.SystemClock;
 
 public class ProximityService extends Service implements SensorEventListener {
 
@@ -28,49 +23,34 @@ public class ProximityService extends Service implements SensorEventListener {
     public static final String ACTION_STATE_CHANGED =
             "com.shinbhairava.proximit.action.STATE_CHANGED";
 
-    private static final String CHANNEL_ID = "proximity_gesture";
+    private static final String CHANNEL_ID = "proximity_screen_off";
     private static final int NOTIFICATION_ID = 42;
     private static final String PREFS = "proximit";
-    private static final String KEY_RUNNING = "gesture_running";
-    private static final long LOCK_DELAY_MS = 300L;
-    private static final long COOLDOWN_MS = 1200L;
-    private static final long STARTUP_GRACE_MS = 2000L;
-
-    private final Handler handler = new Handler(Looper.getMainLooper());
+    private static final String KEY_RUNNING = "screen_off_running";
+    private static final String WAKE_LOCK_TAG = "Proximit:proximityScreenOff";
 
     private SensorManager sensorManager;
     private Sensor proximitySensor;
     private PowerManager powerManager;
-    private DevicePolicyManager devicePolicyManager;
-    private ComponentName adminComponent;
+    private PowerManager.WakeLock proximityWakeLock;
 
     private boolean listening;
-    private boolean armed;
-    private long startedAt;
-    private long lastLockAt;
-
-    private final Runnable lockRunnable = new Runnable() {
-        @Override
-        public void run() {
-            if (!AdminReceiver.isActive(ProximityService.this)) {
-                stopSelf();
-                return;
-            }
-            if (powerManager != null && !powerManager.isInteractive()) {
-                return;
-            }
-            try {
-                devicePolicyManager.lockNow();
-                lastLockAt = SystemClock.elapsedRealtime();
-            } catch (SecurityException exception) {
-                stopSelf();
-            }
-        }
-    };
 
     public static boolean isRunning(Context context) {
         return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE)
                 .getBoolean(KEY_RUNNING, false);
+    }
+
+    public static boolean hasProximitySensor(Context context) {
+        SensorManager manager = (SensorManager) context.getSystemService(SENSOR_SERVICE);
+        return manager != null && manager.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null;
+    }
+
+    public static boolean supportsScreenOff(Context context) {
+        PowerManager manager = (PowerManager) context.getSystemService(POWER_SERVICE);
+        return manager != null
+                && manager.isWakeLockLevelSupported(
+                        PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK);
     }
 
     public static void requestStop(Context context) {
@@ -85,36 +65,32 @@ public class ProximityService extends Service implements SensorEventListener {
                 ? null
                 : sensorManager.getDefaultSensor(Sensor.TYPE_PROXIMITY);
         powerManager = (PowerManager) getSystemService(POWER_SERVICE);
-        devicePolicyManager = (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
-        adminComponent = AdminReceiver.getComponentName(this);
         createNotificationChannel();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (intent != null && ACTION_STOP.equals(intent.getAction())) {
-            stopForeground(STOP_FOREGROUND_REMOVE);
             stopSelf();
             return START_NOT_STICKY;
         }
 
         startForegroundCompat();
 
-        if (proximitySensor == null || !AdminReceiver.isActive(this)) {
+        if (proximityWakeLock != null && !proximityWakeLock.isHeld()) {
+            proximityWakeLock = null;
+        }
+
+        if (proximitySensor == null || !supportsScreenOff(this)) {
             setRunning(false);
-            stopForeground(STOP_FOREGROUND_REMOVE);
             stopSelf();
             return START_NOT_STICKY;
         }
 
-        if (!listening) {
-            armed = false;
-            startedAt = SystemClock.elapsedRealtime();
-            if (sensorManager != null) {
-                sensorManager.registerListener(
-                        this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
-                listening = true;
-            }
+        if (proximityWakeLock == null && !listening && sensorManager != null) {
+            sensorManager.registerListener(
+                    this, proximitySensor, SensorManager.SENSOR_DELAY_NORMAL);
+            listening = true;
         }
 
         setRunning(true);
@@ -123,11 +99,8 @@ public class ProximityService extends Service implements SensorEventListener {
 
     @Override
     public void onDestroy() {
-        handler.removeCallbacks(lockRunnable);
-        if (sensorManager != null && listening) {
-            sensorManager.unregisterListener(this);
-        }
-        listening = false;
+        stopListening();
+        releaseWakeLock();
         setRunning(false);
         stopForeground(STOP_FOREGROUND_REMOVE);
         super.onDestroy();
@@ -143,32 +116,12 @@ public class ProximityService extends Service implements SensorEventListener {
         float maxRange = proximitySensor == null ? 0f : proximitySensor.getMaximumRange();
         boolean near = maxRange > 0f ? value < maxRange : value < 1f;
 
+        // Wait until the sensor is uncovered before arming. This prevents an
+        // immediate screen-off when the tile is tapped with a finger over the
+        // sensor.
         if (!near) {
-            armed = true;
-            handler.removeCallbacks(lockRunnable);
-            return;
+            acquireWakeLock();
         }
-
-        // This also prevents a lock when the tile is tapped with a finger over
-        // the sensor, because the service starts disarmed.
-        if (!armed) {
-            return;
-        }
-        armed = false;
-
-        long now = SystemClock.elapsedRealtime();
-        if (now - startedAt < STARTUP_GRACE_MS) {
-            return;
-        }
-        if (powerManager == null || !powerManager.isInteractive()) {
-            return;
-        }
-        if (now - lastLockAt < COOLDOWN_MS) {
-            return;
-        }
-
-        handler.removeCallbacks(lockRunnable);
-        handler.postDelayed(lockRunnable, LOCK_DELAY_MS);
     }
 
     @Override
@@ -179,6 +132,49 @@ public class ProximityService extends Service implements SensorEventListener {
     @Override
     public IBinder onBind(Intent intent) {
         return null;
+    }
+
+    private void acquireWakeLock() {
+        if (proximityWakeLock != null || powerManager == null) {
+            return;
+        }
+
+        try {
+            PowerManager.WakeLock lock = powerManager.newWakeLock(
+                    PowerManager.PROXIMITY_SCREEN_OFF_WAKE_LOCK, WAKE_LOCK_TAG);
+            lock.setReferenceCounted(false);
+            lock.acquire();
+            proximityWakeLock = lock;
+        } catch (RuntimeException exception) {
+            setRunning(false);
+            stopSelf();
+            return;
+        }
+
+        // The system now monitors the proximity sensor itself; our listener is
+        // no longer needed.
+        stopListening();
+    }
+
+    private void releaseWakeLock() {
+        if (proximityWakeLock == null) {
+            return;
+        }
+        try {
+            if (proximityWakeLock.isHeld()) {
+                proximityWakeLock.release();
+            }
+        } catch (RuntimeException ignored) {
+            // The system may have already released it.
+        }
+        proximityWakeLock = null;
+    }
+
+    private void stopListening() {
+        if (sensorManager != null && listening) {
+            sensorManager.unregisterListener(this);
+        }
+        listening = false;
     }
 
     private void setRunning(boolean running) {

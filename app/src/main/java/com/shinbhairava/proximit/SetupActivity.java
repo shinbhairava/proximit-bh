@@ -2,13 +2,8 @@ package com.shinbhairava.proximit;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.app.admin.DevicePolicyManager;
-import android.content.ComponentName;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
@@ -22,7 +17,7 @@ public class SetupActivity extends Activity {
 
     private TextView statusView;
     private TextView sensorView;
-    private Button adminButton;
+    private TextView supportView;
     private Button notificationsButton;
     private Button toggleButton;
 
@@ -33,11 +28,10 @@ public class SetupActivity extends Activity {
 
         statusView = findViewById(R.id.status);
         sensorView = findViewById(R.id.sensor_status);
-        adminButton = findViewById(R.id.admin_button);
+        supportView = findViewById(R.id.support_status);
         notificationsButton = findViewById(R.id.notifications_button);
         toggleButton = findViewById(R.id.toggle_button);
 
-        adminButton.setOnClickListener(view -> toggleDeviceAdmin());
         notificationsButton.setOnClickListener(view -> requestNotificationPermission());
         toggleButton.setOnClickListener(view -> toggleGesture());
         findViewById(R.id.close_button).setOnClickListener(view -> finish());
@@ -59,9 +53,9 @@ public class SetupActivity extends Activity {
     }
 
     private void refresh() {
-        boolean adminActive = AdminReceiver.isActive(this);
         boolean running = ProximityService.isRunning(this);
-        boolean sensorAvailable = hasProximitySensor();
+        boolean sensorAvailable = ProximityService.hasProximitySensor(this);
+        boolean screenOffSupported = ProximityService.supportsScreenOff(this);
         boolean notificationsAllowed = Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU
                 || checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS)
                 == PackageManager.PERMISSION_GRANTED;
@@ -76,50 +70,22 @@ public class SetupActivity extends Activity {
 
         statusView.setText(getString(
                 R.string.status_template,
-                getString(adminActive ? R.string.enabled : R.string.disabled),
-                notifications,
-                getString(running ? R.string.running : R.string.stopped)));
+                getString(running ? R.string.running : R.string.stopped),
+                notifications));
 
-        sensorView.setText(sensorAvailable ? R.string.sensor_found : R.string.sensor_missing);
-        sensorView.setVisibility(View.VISIBLE);
+        sensorView.setText(
+                sensorAvailable ? R.string.sensor_found : R.string.sensor_missing);
+        supportView.setText(screenOffSupported
+                ? R.string.screen_off_supported
+                : R.string.screen_off_unsupported);
+        supportView.setVisibility(View.VISIBLE);
 
-        adminButton.setText(adminActive ? R.string.disable_admin : R.string.enable_admin);
         notificationsButton.setVisibility(
                 Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !notificationsAllowed
                         ? View.VISIBLE
                         : View.GONE);
         toggleButton.setText(running ? R.string.stop_gesture : R.string.start_gesture);
-        toggleButton.setEnabled(adminActive && sensorAvailable);
-    }
-
-    private void toggleDeviceAdmin() {
-        DevicePolicyManager manager =
-                (DevicePolicyManager) getSystemService(DEVICE_POLICY_SERVICE);
-        if (manager == null) {
-            return;
-        }
-
-        ComponentName admin = AdminReceiver.getComponentName(this);
-        if (manager.isAdminActive(admin)) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.admin_disable_title)
-                    .setMessage(R.string.admin_disable_message)
-                    .setPositiveButton(R.string.disable, (dialog, which) -> {
-                        manager.removeActiveAdmin(admin);
-                        ProximityService.requestStop(this);
-                        refresh();
-                    })
-                    .setNegativeButton(android.R.string.cancel, null)
-                    .show();
-            return;
-        }
-
-        Intent intent = new Intent(DevicePolicyManager.ACTION_ADD_DEVICE_ADMIN)
-                .putExtra(DevicePolicyManager.EXTRA_DEVICE_ADMIN, admin)
-                .putExtra(
-                        DevicePolicyManager.EXTRA_ADD_EXPLANATION,
-                        getString(R.string.admin_explanation));
-        startActivity(intent);
+        toggleButton.setEnabled(sensorAvailable && screenOffSupported);
     }
 
     private void requestNotificationPermission() {
@@ -137,17 +103,13 @@ public class SetupActivity extends Activity {
             return;
         }
 
-        if (!AdminReceiver.isActive(this)) {
-            new AlertDialog.Builder(this)
-                    .setTitle(R.string.admin_required_title)
-                    .setMessage(R.string.admin_required_message)
-                    .setPositiveButton(android.R.string.ok, null)
-                    .show();
+        if (!ProximityService.hasProximitySensor(this)) {
+            Toast.makeText(this, R.string.sensor_unavailable, Toast.LENGTH_SHORT).show();
             return;
         }
 
-        if (!hasProximitySensor()) {
-            Toast.makeText(this, R.string.sensor_unavailable, Toast.LENGTH_SHORT).show();
+        if (!ProximityService.supportsScreenOff(this)) {
+            Toast.makeText(this, R.string.screen_off_unavailable, Toast.LENGTH_SHORT).show();
             return;
         }
 
@@ -160,11 +122,5 @@ public class SetupActivity extends Activity {
         }
 
         statusView.postDelayed(this::refresh, 500L);
-    }
-
-    private boolean hasProximitySensor() {
-        SensorManager manager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        return manager != null
-                && manager.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null;
     }
 }

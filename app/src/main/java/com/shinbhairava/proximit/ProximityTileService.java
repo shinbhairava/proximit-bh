@@ -1,12 +1,8 @@
 package com.shinbhairava.proximit;
 
-import android.app.PendingIntent;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
-import android.hardware.Sensor;
-import android.hardware.SensorManager;
-import android.os.Build;
 import android.os.Handler;
 import android.os.Looper;
 import android.service.quicksettings.Tile;
@@ -36,14 +32,15 @@ public class ProximityTileService extends TileService {
     public void onClick() {
         super.onClick();
 
-        if (!hasProximitySensor()) {
+        if (!ProximityService.hasProximitySensor(this)) {
             Toast.makeText(this, R.string.no_sensor_tile, Toast.LENGTH_SHORT).show();
             refreshTile();
             return;
         }
 
-        if (!AdminReceiver.isActive(this)) {
-            openSetup();
+        if (!ProximityService.supportsScreenOff(this)) {
+            Toast.makeText(this, R.string.screen_off_unsupported_tile, Toast.LENGTH_SHORT).show();
+            refreshTile();
             return;
         }
 
@@ -62,27 +59,14 @@ public class ProximityTileService extends TileService {
         handler.postDelayed(this::refreshTile, 400L);
     }
 
-    private void openSetup() {
-        Intent intent = new Intent(this, SetupActivity.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            PendingIntent pendingIntent = PendingIntent.getActivity(
-                    this,
-                    0,
-                    intent,
-                    PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-            startActivityAndCollapse(pendingIntent);
-        } else {
-            startActivityAndCollapse(intent);
-        }
-    }
-
     private void refreshTile() {
         Tile tile = getQsTile();
         if (tile == null) {
             return;
         }
 
-        if (!hasProximitySensor()) {
+        if (!ProximityService.hasProximitySensor(this)
+                || !ProximityService.supportsScreenOff(this)) {
             tile.setState(Tile.STATE_UNAVAILABLE);
         } else if (ProximityService.isRunning(this)) {
             tile.setState(Tile.STATE_ACTIVE);
@@ -92,11 +76,5 @@ public class ProximityTileService extends TileService {
 
         tile.setLabel(getString(R.string.tile_label));
         tile.updateTile();
-    }
-
-    private boolean hasProximitySensor() {
-        SensorManager manager = (SensorManager) getSystemService(SENSOR_SERVICE);
-        return manager != null
-                && manager.getDefaultSensor(Sensor.TYPE_PROXIMITY) != null;
     }
 }
